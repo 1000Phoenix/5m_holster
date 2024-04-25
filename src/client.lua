@@ -1,8 +1,11 @@
-local function setPedComponentVariationBasedOnWeaponChange(ped, component, equipment, texture)
+local function setPedComponentVariationBasedOnWeaponChange(ped, component, equipment, texture, currentTexture)
     if not IsPedComponentVariationValid(ped, component, equipment, texture) then
         local num_avail_equip = GetNumberOfPedDrawableVariations(ped, component) - 1
         local num_avail_textures = GetNumberOfPedTextureVariations(ped, component, equipment) - 1
         local suggested_issue_msg
+
+        print(equipment, num_avail_equip)
+        print(texture, num_avail_textures)
 
         if equipment > num_avail_equip then
             equipment = "!" .. equipment .. "!"
@@ -16,7 +19,12 @@ local function setPedComponentVariationBasedOnWeaponChange(ped, component, equip
 
         error("Invalid ped component variation: " .. tostring(ped) .. " " .. tostring(component) .. " " ..  tostring(equipment) .. " " ..  tostring(texture) .. suggested_issue_msg)
     end
-    SetPedComponentVariation(ped, component, equipment, texture, 0)
+
+    if RETAIN_TEXTURE_ID then
+        SetPedComponentVariation(ped, component, equipment, currentTexture, 0)
+    else
+        SetPedComponentVariation(ped, component, equipment, texture, 0)
+    end
 end
 
 local function getMatchingEquipment(ped, ped_supported_components)
@@ -40,9 +48,9 @@ local function updateEquipment(cache)
 
     cache.weapon = ped_weapon
 
-    -- prevent future updates ped when nothing has changed
     if cache.component then
-        setPedComponentVariationBasedOnWeaponChange(ped, cache.component, cache.equipment.id_holstered, cache.equipment.texture_holstered)
+        local currentTexture = GetPedTextureVariation(ped, cache.component)
+        setPedComponentVariationBasedOnWeaponChange(ped, cache.component, cache.equipment.id_holstered, cache.equipment.texture_holstered, currentTexture)
         cache.component = nil
     end
 
@@ -62,7 +70,8 @@ local function updateEquipment(cache)
         return
     end
 
-    setPedComponentVariationBasedOnWeaponChange(ped, component, equipment.id_drawn, equipment.texture_drawn)
+    local currentTexture = GetPedTextureVariation(ped, component)
+    setPedComponentVariationBasedOnWeaponChange(ped, component, equipment.id_drawn, equipment.texture_drawn, currentTexture)
 
     cache.component = component
     cache.equipment = equipment
@@ -73,7 +82,6 @@ Citizen.CreateThread(function()
 
     while true do
         updateEquipment(cached_ped_data)
-
         Citizen.Wait(PAUSE_DURATION_BETWEEN_UPDATES_IN_MS)
     end
 end)
