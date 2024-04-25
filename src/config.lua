@@ -85,6 +85,10 @@ local COMPONENTS = {
 
 PAUSE_DURATION_BETWEEN_UPDATES_IN_MS = 200
 
+-- Set this if you want to retain the texture IDs for the holstered and drawn versions of the weapon.
+-- This will stop the texture being changed whenever you pull out the weapon.
+RETAIN_TEXTURE_ID = true
+
 -- see https://docs.fivem.net/docs/game-references/ped-models/ for more ped models
 registerPed("mp_f_freemode_01")
 registerPed("mp_m_freemode_01")
